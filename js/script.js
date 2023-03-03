@@ -40,16 +40,19 @@ const products = [
 const itemsContainer = document.getElementById('items-container')
 const cartIcon = document.querySelector('.cart-icon')
 const cart = document.querySelector('.cart')
+const quickView = document.querySelector('.quick-view')
 
 cartIcon.onclick = dropDown
 
-
+// window.addEventListener('click', function(){
+//     quickView.classList.remove('open')
+// })
 
 
 
 
 itemsContainer.innerHTML = products.map((product, i) => `<div class="item" key=${i} >
-<img src=${product.productImage} alt="productName">
+<img src=${product.productImage} alt="productName" onClick={openQuickView(${i})}>
 <div>
 <h4>${product.productName}</h4>
     <p>$ ${product.productPrice}</p>
@@ -75,16 +78,32 @@ itemsContainer.innerHTML = products.map((product, i) => `<div class="item" key=$
     refreshCartItems()
     
 }
+function openQuickView(i){
+    quickView.classList.toggle('open')
+    quickView.classList.toggle('item')
+    quickView.innerHTML = `
+    <img src=${products[i].productImage} alt="productName">
+        <div>
+            <h4>${products[i].productName}</h4>
+            <p>$ ${products[i].productPrice}</p>
+            <button class="add-to-cart" onClick={addToCart(${i})}>add to cart</button>
+        </div>
+    </div>
+    `
+}
 function refreshCartItems(){
     let cartItems = localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")).length : 0
     cartIcon.innerHTML += `<span>${cartItems}</span>`
 }
 function addToCart(i){
-    // products[i].addToCart = true
     if(localStorage.getItem('cart')){
         let currItems = JSON.parse(localStorage.getItem('cart'))
-        currItems.push(products[i])
-        localStorage.setItem('cart', JSON.stringify([...new Set(currItems)]))
+        let itemExistBefore = currItems.includes(products[i])
+        // console.log(!itemExistBefore);
+        if(!itemExistBefore){
+            currItems.push(products[i])
+            localStorage.setItem('cart', JSON.stringify([...new Set([...currItems])]))
+        }
     }else{
         localStorage.setItem('cart', JSON.stringify([products[i]]))
     }
@@ -97,7 +116,6 @@ function removeFromCart(i){
     localStorage.setItem('cart', JSON.stringify(newLsItems))
     renderCartItems()
     refreshCartItems()
-    console.log('remove from cart');
 }
 function dropDown(){
     cart.classList.toggle('active')
