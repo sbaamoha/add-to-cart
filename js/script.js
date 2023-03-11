@@ -51,13 +51,15 @@ cartIcon.onclick = dropDown
 
 
 function renderProducts(){
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || []
+    
     itemsContainer.innerHTML = products.map((product, i) => `<div class="item" key=${i} >
         <img src=${product.productImage} alt="productName" onClick={openQuickView(${i})}>
         <div>
         <h4>${product.productName}</h4>
-            <p>$ ${product.productPrice}</p>
+            <p>$${product.productPrice}</p>
             ${
-                product.addToCart ? `<button class="remove-from-cart" onClick={removeFromCart(${i})}>remove from cart</button>` : `         <button class="add-to-cart" onClick={addToCart(${i})}>add to cart</button>`
+                cartItems.some(item => item.productName === product.productName) ? `<button class="remove-from-cart" onClick={removeFromCart(${i})}>remove from cart</button>` : ` <button class="add-to-cart" onClick={addToCart(${i})}>add to cart</button>`
             }
     </div>
     </div>`)
@@ -86,17 +88,19 @@ function openQuickView(i){
     quickView.classList.toggle('open')
     quickView.classList.toggle('item')
     quickView.innerHTML = `
-    <img src=${products[i].productImage} alt="productName">
-        <div>
+    <div class="item">
+            <img src=${products[i].productImage} alt="productName" onClick={openQuickView(${i})}>
+            <div>
             <h4>${products[i].productName}</h4>
-            <p>$ ${products[i].productPrice}</p>
-            <button class="add-to-cart" onClick={addToCart(${i})}>add to cart</button>
+                <p>$ ${products[i].productPrice}</p>
+                ${
+                    products[i].addToCart ? `<button class="remove-from-cart" onClick={removeFromCart(${i})}>remove from cart</button>` : ` <button class="add-to-cart" onClick={addToCart(${i})}>add to cart</button>`
+                }
         </div>
-    </div>
-    `
+    </div>`
 }
 function refreshCartCounter(){
-    const cartItems = JSON.parse(localStorage.getItem('cart')) || new Set()
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || []
     cartIcon.innerHTML += `<span>${cartItems.length }</span>`
 }
 
@@ -106,7 +110,6 @@ function addToCart(i){
     if(localStorage.getItem('cart')){
         let currItems = JSON.parse(localStorage.getItem('cart'))
         let itemExistBefore = currItems.some(item => item.productName == products[i].productName)
-        console.log(itemExistBefore);
         if(!itemExistBefore){
             currItems.push({...products[i], addToCart: true})
             localStorage.setItem('cart', JSON.stringify([...new Set([...currItems])]))
@@ -114,17 +117,27 @@ function addToCart(i){
     }else{
         localStorage.setItem('cart', JSON.stringify([products[i]]))
     }
+    // sync quick View when its opened 
+    if(quickView.classList.contains('open')){
+        openQuickView(i)
+    }
     refreshCartCounter()
     renderCartItems()
+    renderProducts()
 }
 function removeFromCart(i){
     products[i].addToCart = false
 
     const lsItems = JSON.parse(localStorage.getItem('cart'))
-    const newLsItems = lsItems.filter((item,index) => index !== i)
+    const newLsItems = lsItems.filter((item,index) => index !== i && item.productName !== products[i].productName)
     localStorage.setItem('cart', JSON.stringify(newLsItems))
+    // sync quick View when its opened 
+    if(quickView.classList.contains('open')){
+        openQuickView(i)
+    }
     renderCartItems()
     refreshCartCounter()
+    renderProducts()
 }
 function dropDown(){
     cart.classList.toggle('active')
