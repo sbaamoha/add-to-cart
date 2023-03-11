@@ -50,20 +50,24 @@ cartIcon.onclick = dropDown
 
 
 
-
-itemsContainer.innerHTML = products.map((product, i) => `<div class="item" key=${i} >
-<img src=${product.productImage} alt="productName" onClick={openQuickView(${i})}>
-<div>
-<h4>${product.productName}</h4>
-    <p>$ ${product.productPrice}</p>
-    <button class="add-to-cart" onClick={addToCart(${i})}>add to cart</button>
+function renderProducts(){
+    itemsContainer.innerHTML = products.map((product, i) => `<div class="item" key=${i} >
+        <img src=${product.productImage} alt="productName" onClick={openQuickView(${i})}>
+        <div>
+        <h4>${product.productName}</h4>
+            <p>$ ${product.productPrice}</p>
+            ${
+                product.addToCart ? `<button class="remove-from-cart" onClick={removeFromCart(${i})}>remove from cart</button>` : `         <button class="add-to-cart" onClick={addToCart(${i})}>add to cart</button>`
+            }
     </div>
     </div>`)
 
+}
+renderProducts()
     
-    function renderCartItems(){
-        const lsItems = JSON.parse(localStorage.getItem('cart'))
-        cart.innerHTML = `
+function renderCartItems(){
+    const lsItems = JSON.parse(localStorage.getItem('cart'))
+    cart.innerHTML = `
         <div>
         ${
             lsItems.length < 1 ? `<h1>no items in the cart</h1>` :
@@ -75,7 +79,7 @@ itemsContainer.innerHTML = products.map((product, i) => `<div class="item" key=$
     </div>
     
     `
-    refreshCartItems()
+    refreshCartCounter()
     
 }
 function openQuickView(i){
@@ -91,31 +95,36 @@ function openQuickView(i){
     </div>
     `
 }
-function refreshCartItems(){
-    let cartItems = localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")).length : 0
-    cartIcon.innerHTML += `<span>${cartItems}</span>`
+function refreshCartCounter(){
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || new Set()
+    cartIcon.innerHTML += `<span>${cartItems.length }</span>`
 }
+
+
 function addToCart(i){
+    products[i].addToCart = true
     if(localStorage.getItem('cart')){
         let currItems = JSON.parse(localStorage.getItem('cart'))
-        let itemExistBefore = currItems.includes(products[i])
-        // console.log(!itemExistBefore);
+        let itemExistBefore = currItems.some(item => item.productName == products[i].productName)
+        console.log(itemExistBefore);
         if(!itemExistBefore){
-            currItems.push(products[i])
+            currItems.push({...products[i], addToCart: true})
             localStorage.setItem('cart', JSON.stringify([...new Set([...currItems])]))
         }
     }else{
         localStorage.setItem('cart', JSON.stringify([products[i]]))
     }
-    refreshCartItems()
+    refreshCartCounter()
     renderCartItems()
 }
 function removeFromCart(i){
+    products[i].addToCart = false
+
     const lsItems = JSON.parse(localStorage.getItem('cart'))
     const newLsItems = lsItems.filter((item,index) => index !== i)
     localStorage.setItem('cart', JSON.stringify(newLsItems))
     renderCartItems()
-    refreshCartItems()
+    refreshCartCounter()
 }
 function dropDown(){
     cart.classList.toggle('active')
