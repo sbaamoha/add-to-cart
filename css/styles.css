@@ -35,8 +35,10 @@ header{
     padding: 6px;
     background: gray;
     width: 25%;
+    height: 50vh;
     right: 0;
     border: 1px solid white;
+    overflow: auto;
 }
 .cart.active{
     display: block;
